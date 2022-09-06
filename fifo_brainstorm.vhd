@@ -75,4 +75,5 @@ begin
     end if;
   end process SlowClkRE;
 
+	--editing in vim
 end architecture RTL;
