@@ -27,7 +27,7 @@ entity FIFO is
 end entity FIFO;
 
 architecture RTL of FIFO is
-  type t_InputBuffer is array (positive range<>) of std_logic_vector;
+  type t_InputBuffer is array (natural range<>) of std_logic_vector (kWordSize-1 downto 0);
 
   signal fInputBuffer : t_InputBuffer (kMemorySize-1 downto 0);
   signal fInputBufferWritePtr : std_logic_vector (kAddressLength-1 downto 0);
@@ -38,7 +38,7 @@ begin
   --full and empty flags should be combinatorial logic not sequential
 
   --implement ring buffer later just stop when its full
-  fFull <= '1' when fInputBufferWritePtr = (others => '1') else 
+  fFull <= '1' when fInputBufferWritePtr = "11111" else 
            '0';
   
   --once read ptr catches up to write ptr we can assume the fifo is empty
@@ -46,8 +46,8 @@ begin
             '0';
 
 
-  FlushFIFO: process(aReset) begin 
-    if rising_edge(aReset) then 
+  FlushFIFO: process(fFastClk) begin 
+    if aReset = '1' then 
       fInputBuffer <= (others => (others => '0'));
       fInputBufferWritePtr <= (others => '0');
 
@@ -60,11 +60,11 @@ begin
       
       --If not writing to it, make it don't care?
       --Default case, should avoid latch
-      fInputBuffer(fInputBufferWritePtr) <= (others => 'X');
+      --fInputBuffer(to_integer(unsigned(fInputBufferWritePtr))) <= (others => 'X');
 
-      if fWE and not fFull then --write enabled and not full
-        fInputBuffer(fInputBufferWritePtr) <= fDataIn;
-        fInputBufferWritePtr <= std_logic_vector(to_unsigned(fInputBufferWritePtr) + 1);
+      if fWE = '1' then --write enabled and not full
+        fInputBuffer(to_integer(unsigned(fInputBufferWritePtr))) <= fDataIn;
+        fInputBufferWritePtr <= std_logic_vector(unsigned(fInputBufferWritePtr) + 1);
       end if; 
 
     end if;
@@ -72,9 +72,11 @@ begin
 
   SlowClkRE: process (sSlowClk) begin 
     if rising_edge(sSlowClk) then 
-      if sRE and not sEmpty then 
-        sDataOut <= fInputBuffer(sBufferReadPtr);
-        sBufferReadPtr <= std_logic_vector(to_unsigned(sBufferReadPtr) + 1);
+      
+      sDataOut <= (others => 'X');
+      if sRE = '1' then 
+        sDataOut <= fInputBuffer(to_integer(unsigned(sBufferReadPtr)));
+        sBufferReadPtr <= std_logic_vector(unsigned(sBufferReadPtr) + 1);
       end if;
     end if;
   end process SlowClkRE;

@@ -64,6 +64,30 @@ begin
   fFastClk <= not fFastClk after 5 ns when not Stop;
 
   --Generate slow clock
-  sSlowClk <= not sSlowClk after 5 ns when not Stop;
+  sSlowClk <= not sSlowClk after 12 ns when not Stop;
+  
+  process begin
+  Stop <= false;
+  aReset <= '1';
+  wait for 24ns;
+  aReset <= '0';
+  
+  fWE <= '1';
+  fDataIn <= "11110000";
+  wait for 5ns;
+  fDataIn <= "11111000";
+  wait for 5ns;
+  fDataIn <= "11111100";
+  wait for 5ns;
+  fDataIn <= "11111110";
+  wait for 5ns;
+  fDataIn <= "11111111";
+  wait for 5ns;
+  fWE <= '0';
+  
+  wait for 100ns;
+  Stop <= true;
+  wait;
+  end process;
 
 end architecture tb;
