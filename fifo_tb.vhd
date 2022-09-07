@@ -12,6 +12,10 @@ end entity FIFO_tb;
 
 architecture tb of FIFO_tb is 
 
+  --Asynchronous reset
+  signal aReset : std_logic;
+
+  --Clock signals
   signal fFastClk, sSlowClk : std_logic;
 
   --Data signals
@@ -32,7 +36,22 @@ begin
       kWordSize => 8
     )
     port map (
+      --Faster Clock Domain
+      fFastClk => fFastClk,
+      fDataIn  => fDataIn,
+      fAlmostFull => fAlmostFull,
+      fFull => fFull,
+      fWE => fWE,
 
-    )
+      --Slower Clock Domain
+      sSlowClk => sSlowClk,
+      sDataOut => sDataOut,
+      sAlmostEmpty => sAlmostEmpty,
+      sEmpty => sEmpty,
+      sRE => sRE,
+
+      --Reset
+      aReset => aReset
+    );
 
 end architecture tb;

@@ -57,11 +57,15 @@ begin
 
   FastClkWE: process(fFastClk) begin --Fast Clk is writing to FIFO
     if rising_edge(fFastClk) then 
+      
+      --If not writing to it, make it don't care?
+      --Default case, should avoid latch
+      fInputBuffer(fInputBufferWritePtr) <= (others => 'X');
 
       if fWE and not fFull then --write enabled and not full
         fInputBuffer(fInputBufferWritePtr) <= fDataIn;
         fInputBufferWritePtr <= std_logic_vector(to_unsigned(fInputBufferWritePtr) + 1);
-      end if; --will create a latch if default case is not created
+      end if; 
 
     end if;
   end process FastClkWE;
